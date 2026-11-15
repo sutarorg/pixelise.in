@@ -48,7 +48,6 @@ Delivered later; disallowed in `robots.txt` and absent from the sitemap:
 - `/signup`, `/login`, `/reset-password` — auth (stage 3, with Supabase)
 - `/dashboard`, `/studio`, `/creations`, `/credits`, `/transactions`, `/settings`, `/help` — the
   customer workspace; **delivered in stage 2**, see the app route map at the end of this file
-- `/admin`, `/admin/*` — admin area (stage 3)
 - `/checkout`, `/api/*` — commerce + backend (stage 4)
 
 ## Internal linking map
@@ -123,6 +122,30 @@ Navigation is fixed: Workspace (Dashboard, AI Studio, My Creations) and Account 
 Transactions, Settings, Help & Support). Phones show four of those in a bottom bar plus an account
 drawer; nothing else is added to keep the information architecture flat.
 
-**Deliberately absent in this stage:** `/login`, `/signup`, `/checkout` (auth and payment pages),
-`/admin/**` (stage 3), any `/api/**` handler (stage 4). `robots.txt` already blocks those paths so
+**Deliberately absent in this stage:** `/login`, `/signup`, `/checkout` (auth and payment pages) and
+any `/api/**` handler (stage 4). `robots.txt` already blocks those paths so
 their absence is not indexable, and the app shell renders the sign-in gate those pages will serve.
+
+---
+
+# Route map — admin console (stage 3)
+
+The console lives in `src/app/admin/`, inherits no marketing metadata, is `noindex, nofollow, nocache`,
+disallowed in `robots.txt` and absent from `sitemap.xml`. It is not linked from the public site or the
+customer dashboard; staff reach it by URL or bookmark.
+
+| Route | Renders | Query state | Notes |
+| --- | --- | --- | --- |
+| `/admin` | customer, revenue, credit and generation totals; success rate; daily volume | `?range=7d\|30d\|90d`, `?from=&to=` | `activeCustomers` is "Not available" until the API documents a definition |
+| `/admin/users` | customer table | `?q=`, `?status=`, `?range/from/to`, `?sort=`, `?dir=`, `?cursor=` | Sortable columns: signed up, credits, generations, purchases |
+| `/admin/users/[id]` | account, status, balance, recent jobs, payments, ledger | — | Suspend/reactivate requires `users:write` + reason; adjustment requires `credits:write` |
+| `/admin/generations` | job table | `?status=`, `?model=`, `?style=`, `?user=`, `?range/from/to`, `?cursor=`, `?record=` | Detail panel (`?record=<id>`) holds assets, provider ids, credits and status history |
+| `/admin/payments` | order table | `?q=`, `?status=`, `?range/from/to`, `?cursor=`, `?record=` | Detail panel shows Razorpay ids, credits granted, webhook and verification state |
+| `/admin/credits` | ledger table | `?q=`, `?user=`, `?type=`, `?range/from/to`, `?cursor=` | "Adjust credits" opens the search → amount → reason → confirm flow |
+| `/admin/models` | model catalogue | — | Routing toggle requires `models:write` + reason; rates and pricing read-only |
+| `/admin/settings` | general, generation, payments, email | — | Read-only in this stage; packs are cross-checked against published pricing |
+| `/admin/audit-logs` | audit trail | `?q=`, `?action=`, `?admin=`, `?sort=&dir=`, `?range/from/to`, `?cursor=` | Append-only; entries are written by the service |
+
+Gate states: unauthenticated → sign-in gate; authenticated non-staff → bare 403 with no navigation,
+counts or record ids; unreachable API → error page; no API configured → shell with a "not connected"
+strip. None of these surfaces contains a record, a total or a link into a section.

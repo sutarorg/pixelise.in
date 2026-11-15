@@ -19,13 +19,22 @@ export function SheetContent({
   children,
   title,
   description,
+  closeLabel = "Close",
+  portal = true,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   title: string;
   description?: string;
+  closeLabel?: string;
+  /**
+   * `false` renders the drawer in place instead of a portal. Radix portals need
+   * a DOM container, so a portalled drawer has no server-rendered markup; the
+   * admin record drawer opts out to stay readable in the initial HTML.
+   */
+  portal?: boolean;
 }) {
-  return (
-    <DialogPrimitive.Portal>
+  const surface = (
+    <>
       <DialogPrimitive.Overlay
         className={cn(
           "fixed inset-0 z-50 bg-ink/35 backdrop-blur-[2px]",
@@ -47,7 +56,7 @@ export function SheetContent({
           </DialogPrimitive.Title>
           <DialogPrimitive.Close
             className="-mr-1 grid size-9 cursor-pointer place-items-center rounded-lg text-muted transition-colors hover:bg-ink/[0.05] hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
-            aria-label="Close menu"
+            aria-label={closeLabel}
           >
             <X className="size-[1.15rem]" strokeWidth={1.9} />
           </DialogPrimitive.Close>
@@ -57,10 +66,10 @@ export function SheetContent({
             {description}
           </DialogPrimitive.Description>
         ) : null}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-6">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-6">{children}</div>
       </DialogPrimitive.Content>
-    </DialogPrimitive.Portal>
+    </>
   );
+
+  return portal ? <DialogPrimitive.Portal>{surface}</DialogPrimitive.Portal> : surface;
 }

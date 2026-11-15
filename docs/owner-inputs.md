@@ -89,3 +89,14 @@ nothing false ships while they are open.
 | 6 | Credit cost per generation (standard vs premium) | `/studio` cost panel | Shows `—` and explains the service confirms the cost |
 | 7 | Final scene catalogue, aspect ratios and quality tiers | `/studio` seed | `src/config/studio.ts` is labelled a default catalogue |
 | 8 | Download link lifetime (signed URLs) | `/settings` security note, creation page | Says links are time-limited, without a number |
+
+## Admin console (stage 3)
+
+| Question | Why it matters | Current behaviour |
+| --- | --- | --- |
+| What counts as an "active customer"? | The overview shows the metric only if the API documents a definition | `activeCustomers: null` → "Not available"; no definition is invented |
+| Who may hold each console role (`owner`, `admin`, `analyst`, `support`)? | Determines who can adjust credits, suspend accounts, toggle routing | `GET /admin/me` returns `permissions[]`; the console mirrors them and the service re-checks |
+| Which administrator actions require a second approver? | Credits and refunds are money-moving | Every write requires a reason and is audited; two-person approval is not modelled yet |
+| Refund policy for the two packs | The console must not imply a refund it cannot perform | No refund control until `POST /admin/payments/{id}/refunds` exists server-side |
+| Retention period for audit entries and signed preview URLs | Operational and legal requirement | Audit log is append-only; preview URLs are per-request and short-lived |
+| Support inbox address shown in Configuration | It is rendered on the console only — never fabricated | `supportEmail: null` renders "Not available" |

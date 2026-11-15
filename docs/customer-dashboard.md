@@ -248,7 +248,7 @@ Nothing in `src/styles/globals.css`'s token set changed. The dashboard adds only
 | --- | --- |
 | `npm run lint` | clean (React Compiler rules included — no `setState` in effects) |
 | `npm run typecheck` | clean |
-| `npm run build` | 25 routes: 11 static marketing, 8 partial-prerender app routes, 6 asset/meta routes |
+| `npm run build` | 25 entries: 11 static marketing pages, 8 partial-prerender app routes, plus the generated not-found, icon, OG image, robots and sitemap routes |
 | Route smoke test | all 19 routes return 200; 29 internal links resolve; 0 broken |
 | Sitemap / robots | 11 public URLs; all eight app routes disallowed; app pages `noindex` |
 | Shell structure | `#main`, skip link, `aria-current`, sidebar hidden < 1024px on every app page |

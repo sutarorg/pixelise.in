@@ -30,8 +30,10 @@ export const links = {
   /** True when the studio app is configured in the environment. */
   appConnected: Boolean(appUrl),
   appStudio: appUrl ?? "/get-started",
-  login: appUrl ? `${appUrl}/login` : "/get-started#studio-access",
-  signup: appUrl ? `${appUrl}/signup` : "/get-started",
+  /* The account pages ship in this app, so these are always same-origin routes
+     (they resolve under the configured app URL in production either way). */
+  login: "/login",
+  signup: "/signup",
   /** Where every "Get started" CTA points. */
   getStarted: "/get-started",
   examples: "/examples",

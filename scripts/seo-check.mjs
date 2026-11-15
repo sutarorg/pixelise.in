@@ -81,6 +81,7 @@ const privatePrefixes = [
   "/billing",
   "/login",
   "/signup",
+  "/forgot-password",
   "/checkout",
   "/payment",
 ];

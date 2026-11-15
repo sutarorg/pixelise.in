@@ -57,6 +57,7 @@ export const privatePathPrefixes = [
   "/billing",
   "/login",
   "/signup",
+  "/forgot-password",
   "/checkout",
   "/payment",
 ] as const;

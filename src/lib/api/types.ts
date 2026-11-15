@@ -291,3 +291,21 @@ export interface ApiError {
 }
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: ApiError };
+
+/* ---------------------------------- Auth ---------------------------------- */
+
+export interface AuthUser {
+  id: string;
+  email: string;
+}
+
+export interface AuthSignInResult {
+  status: "signed_in";
+  user: AuthUser;
+}
+
+export interface AuthSignUpResult {
+  /** `pending_verification` means Supabase created the user but withheld the session. */
+  status: "signed_in" | "pending_verification";
+  user: AuthUser | null;
+}

@@ -34,18 +34,33 @@ links.appStudio   // the studio application entry point
 
 Behaviour today:
 
-- `NEXT_PUBLIC_APP_URL` is unset → `getStarted` is `/get-started` (an on-site page with real
-  content), and `login` is `/get-started#studio-access`.
-- `NEXT_PUBLIC_APP_URL` set → `getStarted` becomes `${APP_URL}/signup`, `login` becomes
-  `${APP_URL}/login`. No component changes are required.
+- `links.login` is `/login` and `links.signup` is `/signup` — both ship in this app, so they are
+  same-origin routes whether or not `NEXT_PUBLIC_APP_URL` is set.
+- `getStarted` remains `/get-started`, an on-site page with real content.
 
-This is the documented seam for stage 2. **No route in this repository 404s.**
+**No route linked from the header, the app gates or an email 404s.**
+
+## Account entry routes
+
+| Route | Render | Purpose | Notes |
+| --- | --- | --- | --- |
+| `/login` | dynamic (`instant = false`) | Sign in; `?mode=recovery` becomes the new-password form; `?error=` explains a failed link; `?next=` is sanitised by `safeNextPath` | `noindex`, `Disallow: /login` |
+| `/signup` | static shell + client form | Creates the account through `POST /api/v1/auth/sign-up`; shows "check your inbox" when confirmation is on | `noindex`, `Disallow: /signup` |
+| `/forgot-password` | static shell + client form | Requests `POST /api/v1/auth/recovery`; one answer whether or not the account exists | `noindex`, `Disallow: /forgot-password` |
+
+The reset email links to `/api/v1/auth/callback?next=/login?mode=recovery`: the callback exchanges the
+one-time code for a session **before** the customer reaches the password form, which is what makes
+`POST /api/v1/auth/update-password` succeed.
+
+## Response headers and noindex on those pages
+
+The `(auth)` layout sets `robots: noindex, nofollow, nocache`; `src/config/seo.ts` adds
+`/forgot-password` to `privatePathPrefixes`, which drives both `robots.txt` and the SEO script.
 
 ## Routes intentionally *not* in stage 1
 
 Delivered later; disallowed in `robots.txt` and absent from the sitemap:
 
-- `/signup`, `/login`, `/reset-password` — auth (stage 3, with Supabase)
 - `/dashboard`, `/studio`, `/creations`, `/credits`, `/transactions`, `/settings`, `/help` — the
   customer workspace; **delivered in stage 2**, see the app route map at the end of this file
 - `/checkout`, `/api/*` — commerce + backend (stage 4)
@@ -122,9 +137,9 @@ Navigation is fixed: Workspace (Dashboard, AI Studio, My Creations) and Account 
 Transactions, Settings, Help & Support). Phones show four of those in a bottom bar plus an account
 drawer; nothing else is added to keep the information architecture flat.
 
-**Deliberately absent in this stage:** `/login`, `/signup`, `/checkout` (auth and payment pages) and
-any `/api/**` handler (stage 4). `robots.txt` already blocks those paths so
-their absence is not indexable, and the app shell renders the sign-in gate those pages will serve.
+**Deliberately absent:** `/checkout` (payment pages) beyond the Razorpay hosted checkout. The auth
+pages and the `/api/v1/**` handlers exist; the app shell renders its sign-in gate with a link to
+`/login`, which is a real page rather than a redirect loop.
 
 ---
 

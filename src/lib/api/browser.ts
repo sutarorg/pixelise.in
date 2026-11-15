@@ -10,6 +10,8 @@
 import { apiPaths, request } from "./core";
 import type {
   ApiResult,
+  AuthSignInResult,
+  AuthSignUpResult,
   BillingOrder,
   CreateGenerationInput,
   CreateGenerationResult,
@@ -112,6 +114,19 @@ export const updatePreferences = (input: Partial<NotificationPreferences>) =>
 export const deleteAccount = (input: { confirmation: string }) =>
   request<{ status: "deleted" }>(apiPaths.me, { method: "DELETE", body: input });
 
-export const signOut = () => request<{ status: "signed_out" }>("/api/v1/auth/sign-out", { method: "POST" });
+export const signIn = (input: { email: string; password: string }) =>
+  request<AuthSignInResult>(apiPaths.authSignIn, { method: "POST", body: input });
+
+export const signUp = (input: { email: string; password: string; displayName?: string }) =>
+  request<AuthSignUpResult>(apiPaths.authSignUp, { method: "POST", body: input });
+
+export const requestPasswordRecovery = (input: { email: string }) =>
+  request<{ status: "sent" }>(apiPaths.authRecovery, { method: "POST", body: input });
+
+/** Used by the recovery link, which arrives already holding a session. */
+export const updatePassword = (input: { password: string }) =>
+  request<{ status: "updated" }>(apiPaths.authUpdatePassword, { method: "POST", body: input });
+
+export const signOut = () => request<{ status: "signed_out" }>(apiPaths.authSignOut, { method: "POST" });
 
 export type WalletResult = ApiResult<CreditWallet>;

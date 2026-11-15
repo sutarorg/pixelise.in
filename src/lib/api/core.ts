@@ -10,6 +10,13 @@ import type { ApiError, ApiErrorCode, ApiResult } from "./types";
 
 export const apiPaths = {
   me: "/api/v1/me",
+  /* Auth. The pages call these instead of reaching Supabase directly, so the
+     rate limit, the schema and the cookie handling stay server-side. */
+  authSignIn: "/api/v1/auth/sign-in",
+  authSignUp: "/api/v1/auth/sign-up",
+  authRecovery: "/api/v1/auth/recovery",
+  authUpdatePassword: "/api/v1/auth/update-password",
+  authSignOut: "/api/v1/auth/sign-out",
   preferences: "/api/v1/me/preferences",
   wallet: "/api/v1/credits/wallet",
   transactions: "/api/v1/credits/transactions",

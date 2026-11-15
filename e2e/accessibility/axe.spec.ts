@@ -17,6 +17,9 @@ const pages = [
   { path: "/blog", name: "journal index" },
   { path: "/blog/ai-product-photography-ecommerce-guide", name: "article" },
   { path: "/blog/categories/ecommerce-photography", name: "category" },
+  { path: "/login", name: "sign in" },
+  { path: "/signup", name: "sign up" },
+  { path: "/forgot-password", name: "password reset" },
   { path: "/dashboard", name: "app gate" },
   { path: "/admin", name: "console gate" },
 ];

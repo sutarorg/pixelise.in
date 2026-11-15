@@ -161,6 +161,7 @@ videos on every run.
 src/
   app/
     layout.tsx              root layout: fonts, metadata defaults, viewport
+    (auth)/                 account entry (login, signup, forgot-password) — noindex
     (marketing)/            public route group (header + footer chrome)
       blog/                  journal: index, [slug] articles, categories/[category]
     (app)/                  customer workspace (sidebar shell, session gate)

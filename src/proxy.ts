@@ -14,6 +14,9 @@ import { createServerClient } from "@supabase/ssr";
  * page instead of an empty dashboard, not to protect data.
  */
 
+/** Pages that only make sense signed out. */
+const AUTH_PATHS = ["/login", "/signup", "/forgot-password"] as const;
+
 const PROTECTED_PREFIXES = [
   "/dashboard",
   "/studio",
@@ -34,6 +37,8 @@ export async function proxy(request: NextRequest) {
   const isPrivate = PROTECTED_PREFIXES.some(
     (prefix) => request.nextUrl.pathname === prefix || request.nextUrl.pathname.startsWith(`${prefix}/`),
   );
+
+  const isAuthPage = (AUTH_PATHS as readonly string[]).includes(request.nextUrl.pathname);
 
   if (url && key) {
     const supabase = createServerClient(url, key, {
@@ -60,6 +65,21 @@ export async function proxy(request: NextRequest) {
       signIn.pathname = "/login";
       signIn.search = `?next=${encodeURIComponent(request.nextUrl.pathname)}`;
       return withSecurityHeaders(NextResponse.redirect(signIn));
+    }
+
+    /* Someone already signed in has no use for the sign-in door. The recovery
+       mode is the exception: there the customer holds a session *because* they
+       clicked a reset link, and still needs the form to choose a password. */
+    const recoveryMode = request.nextUrl.searchParams.get("mode") === "recovery";
+    if (user && isAuthPage && !recoveryMode) {
+      const dashboard = request.nextUrl.clone();
+      dashboard.pathname = "/dashboard";
+      dashboard.search = "";
+      const redirect = NextResponse.redirect(dashboard);
+      /* Carry over any refreshed session cookies, or the redirect would hand the
+         browser a stale session. */
+      for (const cookie of response.cookies.getAll()) redirect.cookies.set(cookie);
+      return withSecurityHeaders(redirect);
     }
   }
 

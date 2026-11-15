@@ -24,8 +24,29 @@ export const apiPaths = {
   payments: "/api/v1/billing/payments",
 } as const;
 
-/** Server-side base URL. Set in the deployment environment (stage 3). */
-export const serverApiBase = normalizeBase(process.env.PIXELISE_API_BASE_URL);
+/**
+ * Server-side base URL for the workspace API.
+ *
+ * `PIXELISE_API_BASE_URL` still wins, which is what a split deployment (or a stub
+ * service in tests) sets. Otherwise the server talks to *its own* `/api/v1`
+ * routes, which is how stage 4 connects the reviewed stage-2/3 pages without
+ * rewriting them: same request path, same cookie, same contracts.
+ */
+function resolveServerBase(): string | null {
+  const explicit = normalizeBase(process.env.PIXELISE_API_BASE_URL);
+  if (explicit) return explicit;
+  if (typeof window !== "undefined") return null;
+
+  const publicOrigin = normalizeBase(process.env.NEXT_PUBLIC_APP_URL);
+  if (publicOrigin) return publicOrigin;
+
+  const vercel = normalizeBase(process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL);
+  if (vercel) return vercel.startsWith("http") ? vercel : `https://${vercel}`;
+
+  return process.env.NODE_ENV === "development" ? "http://127.0.0.1:3000" : null;
+}
+
+export const serverApiBase = resolveServerBase();
 
 /** Browser base URL. Empty string means "same origin". */
 export const browserApiBase = normalizeBase(process.env.NEXT_PUBLIC_API_BASE_URL) ?? "";

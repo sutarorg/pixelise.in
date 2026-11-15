@@ -1,15 +1,18 @@
-# Pixelise — website, customer dashboard and admin console (stages 1–3)
+# Pixelise — website, customer dashboard, admin console and production backend
 
 **Pixelise** is an AI product photography studio for ecommerce. This repository holds the public
 marketing site, the customer workspace and the internal operations console, built as one Next.js App
 Router application.
 Next.js 16.4, React 19.3, TypeScript (strict), Tailwind CSS v4.
 
-> **Stage 3 of 4.** No database, auth provider, payment verification, AI generation or API route
-> exists yet. Every interface the backend must implement is documented in `docs/API-CONTRACT.md`
-> (Part II for the dashboard, Part III for the console), and both frontends are typed against it.
-> Nothing is mocked: an unconnected workspace or console shows designed "not connected" states
-> instead of invented data.
+> **Stage 4 of 4.** The backend now lives in this repository: `/api/v1` route handlers, Supabase
+> Postgres + Auth, Cloudflare R2 for images, fal.ai for generation, Razorpay for the two credit
+> packs, and Resend for transactional email. The three frontends call those routes — nothing is
+> mocked, and a surface whose provider is not configured says so instead of inventing data.
+>
+> Two things are deliberately switched off until the owner decides them: **generation credit
+> pricing** (no approved rate ⇒ no charging, no generation) and **admin roles** (granted by hand in
+> Supabase). See `docs/owner-inputs.md`, `docs/architecture/production-readiness.md`.
 
 ---
 
@@ -21,17 +24,47 @@ npm run dev        # http://localhost:3000
 ```
 
 ```bash
-npm run build      # production build (marketing routes static, app routes partial)
+npm run build      # production build (marketing routes static, app routes partial, /api/v1 dynamic)
 npm run start      # serve the production build
 npm run lint       # eslint (next lint was removed in Next 16)
 npm run typecheck  # tsc --noEmit
+npm test           # vitest: unit + contract tests, no network, no database
 npm run assets     # rebuild WebP derivatives + image manifest from the raw masters
 ```
 
+Tests never touch Supabase, fal, Razorpay, R2 or Resend, and never make a payment or a paid AI
+call. The database invariants that cannot be unit-tested are covered by the staging checklist in
+`docs/architecture/credit-system.md` §7.
+
 ## Environment
 
-Everything is optional — the app builds and runs with no environment variables, which is how the
-"not connected" states are exercised.
+Copy `.env.example` to `.env.local`. The app still builds with no variables at all — that is how the
+"not connected" states are exercised — but nothing real works until Supabase and R2 are set.
+
+| Group | Variables |
+| --- | --- |
+| App | `NEXT_PUBLIC_APP_URL`, `PIXELISE_API_BASE_URL` (optional), `CRON_SECRET`, `IP_HASH_SALT` |
+| Database + auth | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
+| Images | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` |
+| Generation | `FAL_KEY` |
+| Payments | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` |
+| Email | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` |
+
+`.env.example` documents purpose, scope (public vs server) and where each value comes from. Setup
+walkthroughs: `docs/deployment/{vercel,supabase,cloudflare-r2,razorpay,fal,resend}-setup.md`.
+
+### First run, in order
+
+```bash
+npm install
+supabase link --project-ref <ref> && supabase db push     # schema + functions + RLS
+psql "$DATABASE_URL" -f supabase/seed.sql                 # models disabled, no pricing
+npm run dev
+```
+
+Then promote yourself to admin (`docs/deployment/supabase-setup.md` §4), enable one model
+(`docs/deployment/fal-setup.md` §3) and approve a credit rate
+(`POST /api/v1/admin/pricing`). Generation stays off until that last step, by design.
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
@@ -51,6 +84,24 @@ Everything is optional — the app builds and runs with no environment variables
 **Admin console** (`src/app/admin/`, noindex, disallowed in robots): `/admin` (overview), `/admin/users`,
 `/admin/users/[id]`, `/admin/generations`, `/admin/payments`, `/admin/credits`, `/admin/models`,
 `/admin/settings`, `/admin/audit-logs`. Staff only — the API decides, on every request.
+
+## Backend
+
+```
+src/app/api/v1/
+  public/{config,contact}      me, me/preferences       auth/*
+  credits/{packs,wallet,transactions}                   studio/config
+  uploads, uploads/[id]/complete                        generations, creations
+  payments/{orders,verify}, payments      webhooks/{razorpay,fal}
+  admin/{me,overview,users,generations,payments,credits,models,config,settings,pricing,audit-logs,reconcile}
+src/services/    credits, uploads, generations, payments, email, admin, profile, reconciliation
+src/lib/         http (envelope, errors, rate limit), supabase, auth, storage (R2), ai (fal), payments, email, validations
+supabase/migrations/  0001 schema · 0002 functions · 0003 RLS · 0004 admin helpers · seed.sql
+```
+
+Every response is `{success,data|error,requestId}` with a safe code and no internals. Docs:
+`docs/architecture/` (system, decisions, schema, API, security, credits, AI, payments, storage,
+readiness).
 
 ## Structure
 
@@ -145,7 +196,19 @@ audit entries or model catalogues anywhere in the build.
 | `docs/owner-inputs.md` | Unknown business facts and policy decisions still required |
 | `docs/research/admin-dashboard-research.md` | Supabase RBAC, accessible ops tables, patterns adopted/rejected from five SaaS consoles, honest aggregation, 9 sources |
 | `docs/admin-dashboard.md` | Console routes, authorization posture, data flow, component map, six states, a11y decisions, deliberate limitations, QA log |
-| `docs/API-CONTRACT.md` | Typed contracts for the stage-4 backend (Part II = dashboard, Part III = console), and what is explicitly not built |
+| `docs/API-CONTRACT.md` | Typed contracts for the backend (Part II = dashboard, Part III = console, Part IV = what stage 4 changed) |
+| `docs/research/backend-architecture-research.md` | Sources behind the backend: Next 16 route handlers, Supabase SSR/RLS, fal queue, Razorpay, R2, Resend |
+| `docs/architecture/system-architecture.md` | Layers, request lifecycle, async work, failure outcomes, environments |
+| `docs/architecture/technical-decisions.md` | 13 ADRs with the alternatives that were rejected |
+| `docs/architecture/database-schema.md` | Tables, functions, indexes, RLS and the verification status of the migrations |
+| `docs/architecture/api-reference.md` | Every `/api/v1` endpoint, codes, limits and the deprecated aliases |
+| `docs/architecture/security.md` | Identity, uploads, payments, idempotency, privacy, and what is *not* claimed |
+| `docs/architecture/credit-system.md` | Wallet model, ledger invariants, idempotency keys, staging checklist |
+| `docs/architecture/ai-generation.md` | Model routing, prompt rules, pipeline, failure messages |
+| `docs/architecture/payment-flow.md` | Trust boundaries, grant path, reconciliation, tax gap |
+| `docs/architecture/storage-flow.md` | R2 keys, upload verification, signed downloads, CORS, deletion |
+| `docs/architecture/production-readiness.md` | Launch checklist: verified here vs needs staging vs owner action |
+| `docs/deployment/*.md` | Vercel, Supabase, Cloudflare R2, Razorpay, fal, Resend setup |
 
 ## Image pipeline
 

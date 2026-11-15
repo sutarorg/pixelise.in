@@ -100,3 +100,26 @@ nothing false ships while they are open.
 | Refund policy for the two packs | The console must not imply a refund it cannot perform | No refund control until `POST /admin/payments/{id}/refunds` exists server-side |
 | Retention period for audit entries and signed preview URLs | Operational and legal requirement | Audit log is append-only; preview URLs are per-request and short-lived |
 | Support inbox address shown in Configuration | It is rendered on the console only — never fabricated | `supportEmail: null` renders "Not available" |
+
+---
+
+## Stage 4 — backend decisions still waiting on the owner
+
+These block paid generation and public checkout. Each has a safe default in the
+code today, so nothing invents a number or a promise.
+
+| # | Decision | Where it is enforced | Behaviour until answered |
+| --- | --- | --- | --- |
+| 20 | **Credit cost per generation** (per style × quality × resolution). | `generation_pricing.credits` + `approved` | No approved row exists, so `POST /generations` returns `not_configured`, the studio shows "pricing not configured", and **no credits can be spent**. Set rates via `POST /api/v1/admin/pricing` with `approved: true`. |
+| 21 | **Which model is the default**, and whether a cheaper fallback is ever used. | `model_configs.routing_enabled` | All seeded models ship disabled. Enable exactly one via `PATCH /api/v1/admin/models/{id}` with a reason. |
+| 22 | **Provider cost per image** for models whose price fal does not publish. | `model_configs.provider_cost_usd` | `null` — the console shows "not published" rather than a guess, so margin reporting is incomplete until filled. |
+| 23 | **GST**: registration status, rate, inclusive vs exclusive pricing, invoice series, and who issues the tax invoice (Pixelise or Razorpay). | Not implemented anywhere | No tax is calculated or claimed. Prices are presented as the amount charged. Requires an accountant's answer before launch. |
+| 24 | **Refund policy for money** and who may approve one. | No refund endpoint exists | Only automatic credit returns on failed jobs are implemented. A refund requires a manual Razorpay action plus a documented decision. |
+| 25 | **Credit expiry**. | Not implemented | Credits never expire in code and nothing claims they do. If a policy exists it must be published with notice before it is enforced. |
+| 26 | **Data retention**: how long originals and outputs are kept, and the deletion SLA after an account request. | Soft delete only; no sweep job | Assets are marked deleted; objects are not yet swept from R2. Publish the period before promising it. |
+| 27 | **Support inbox address** and whether contact messages should also email the owner. | `system_settings['support.recipient']` | Unset → messages are stored in `contact_messages` and no notification email is sent. The contact form now submits successfully once Supabase is configured. |
+| 28 | **Sender identity and domain verification** for transactional email (e.g. `hello@pixelise.in`). | `RESEND_FROM_EMAIL` | Unset → email is skipped and logged; no financial state depends on it. |
+| 29 | **Supabase plan, region (Mumbai vs Singapore) and PITR** decision. | Infrastructure | Not set by code. Region affects latency for Indian customers; PITR affects recoverability after a bad migration. |
+| 30 | **Admin roster**: who holds `owner`, `admin`, `support`, `analyst`, and how a console role is granted. | `app_metadata.app_role` / `admin_role` | No admin exists in a fresh install. Promotion is a manual Supabase SQL step (documented in `docs/deployment/supabase-setup.md`). |
+| 31 | **Vercel cron** for reconciliation: enable it, or rely on manual admin runs. | `vercel.json` (not yet added) | Reconciliation can be run from the console/API. Without a cron, a lost webhook waits until someone runs it. |
+| 32 | **Legal review** of the privacy page's description of AI processing and retention. | `/privacy` | The page describes the actual pipeline; it needs a lawyer's review before launch. |

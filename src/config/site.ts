@@ -46,6 +46,7 @@ export const routes = {
   howItWorks: "/how-it-works",
   pricing: "/pricing",
   faq: "/faq",
+  blog: "/blog",
   contact: "/contact",
   getStarted: "/get-started",
   privacy: "/privacy",

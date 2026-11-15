@@ -1,13 +1,15 @@
-# Pixelise — website + customer dashboard (stages 1–2)
+# Pixelise — website, customer dashboard and admin console (stages 1–3)
 
 **Pixelise** is an AI product photography studio for ecommerce. This repository holds the public
-marketing site and the customer workspace, built as one Next.js App Router application.
+marketing site, the customer workspace and the internal operations console, built as one Next.js App
+Router application.
 Next.js 16.4, React 19.3, TypeScript (strict), Tailwind CSS v4.
 
-> **Stage 2 of 4.** No database, auth provider, payment verification, AI generation or API route
+> **Stage 3 of 4.** No database, auth provider, payment verification, AI generation or API route
 > exists yet. Every interface the backend must implement is documented in `docs/API-CONTRACT.md`
-> (Part II for the dashboard), and the frontend is typed against it. Nothing is mocked: an
-> unconnected workspace shows designed "not connected" states instead of invented data.
+> (Part II for the dashboard, Part III for the console), and both frontends are typed against it.
+> Nothing is mocked: an unconnected workspace or console shows designed "not connected" states
+> instead of invented data.
 
 ---
 
@@ -46,6 +48,10 @@ Everything is optional — the app builds and runs with no environment variables
 **Customer** (`src/app/(app)/`, noindex, disallowed in robots): `/dashboard`, `/studio`, `/creations`,
 `/creations/[id]`, `/credits`, `/transactions`, `/settings`, `/help`.
 
+**Admin console** (`src/app/admin/`, noindex, disallowed in robots): `/admin` (overview), `/admin/users`,
+`/admin/users/[id]`, `/admin/generations`, `/admin/payments`, `/admin/credits`, `/admin/models`,
+`/admin/settings`, `/admin/audit-logs`. Staff only — the API decides, on every request.
+
 ## Structure
 
 ```
@@ -57,6 +63,9 @@ src/
       layout.tsx            the guard + shell; the only place a session is resolved
       dashboard/ studio/ creations/ creations/[id]/ credits/ transactions/ settings/ help/
       error.tsx             route-level failure boundary
+    admin/                  operations console (own shell, admin gate, noindex)
+      layout.tsx            the admin gate + shell; the only place an admin is resolved
+      users/ generations/ payments/ credits/ models/ settings/ audit-logs/
     opengraph-image.tsx     1200×630 social card rendered with the real Manrope file
     icon.svg                brand favicon
     sitemap.ts robots.ts    generated crawl files (public routes only)
@@ -70,19 +79,24 @@ src/
     app/                    shell: sidebar, header, mobile nav, account menu, credit balance,
                             page header, section card, state views (empty/error/gated)
     studio/                 uploader, style/scene/settings pickers, status, preview, workspace
+    admin/                  console: sidebar, header, data table, filters, pagination,
+                            detail drawer, credit adjustment, audit table, volume chart, states
     creations/ transactions/ credits/ settings/   page-level components
   config/                   site, navigation, pricing (real business config), content, gallery,
                             generated image manifest, dashboard nav, studio capability seed
   lib/
-    api/                    types (domain + transport), core (fetch, errors), server, browser
+    api/                    types (domain + transport), core (fetch, errors), server, browser,
+                            admin-types / admin (paths + mutations) / admin-server (reads)
     session.ts              session resolution consumed by the shell
+    admin-session.ts        the only "is this an admin?" reader (stage 4 swaps its body)
+    admin-filters.ts        URL-as-state helpers for console filters, sort and cursors
     format.ts               locale-stable money, credits, dates, byte sizes
     upload.ts               client-side file validation
     seo/  contact/          metadata + structured data, typed contact contract
   fonts/                    Manrope variable woff2 (OFL) + currency subset
   styles/globals.css        design tokens, base layer, type utilities, motion
 docs/                       research, design system, routes, assets, owner inputs, API contract,
-                            customer dashboard
+                            customer dashboard, admin console
 scripts/build-assets.mjs    image pipeline (WebP + dimensions + blur placeholders)
 ```
 
@@ -99,6 +113,14 @@ state once the service answers with an empty collection. Nothing is seeded, simu
   refusal honestly, with no local credit deduction and no fake progress.
 - Checkout asks the server to create an order; when it can't, nothing is charged and the message says so.
 - Settings controls (switches, delete, sign-out) are wired to real endpoints and fail visibly.
+
+## How the console behaves without a backend
+
+`/admin` resolves the operator through the same API. Without `PIXELISE_API_BASE_URL` the shell renders
+with a "not connected" strip and every panel reports `not_configured`; with the service configured but
+the caller not signed in, or not staff, the console renders a sign-in gate or a bare 403 with no
+navigation, counts or record ids. There are no demo customers, revenue figures, charts, payments,
+audit entries or model catalogues anywhere in the build.
 
 ## Honesty rules enforced in this build
 
@@ -121,7 +143,9 @@ state once the service answers with an empty collection. Nothing is seeded, simu
 | `docs/route-map.md` | Every route (public and app), metadata, CTA destinations, structured data, internal links |
 | `docs/creative-assets.md` | Art direction, verbatim generation prompts, derivative map, reuse rules |
 | `docs/owner-inputs.md` | Unknown business facts and policy decisions still required |
-| `docs/API-CONTRACT.md` | Typed contracts for the stage-4 backend (Part II = dashboard), and what is explicitly not built |
+| `docs/research/admin-dashboard-research.md` | Supabase RBAC, accessible ops tables, patterns adopted/rejected from five SaaS consoles, honest aggregation, 9 sources |
+| `docs/admin-dashboard.md` | Console routes, authorization posture, data flow, component map, six states, a11y decisions, deliberate limitations, QA log |
+| `docs/API-CONTRACT.md` | Typed contracts for the stage-4 backend (Part II = dashboard, Part III = console), and what is explicitly not built |
 
 ## Image pipeline
 

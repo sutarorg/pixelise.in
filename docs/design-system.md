@@ -223,3 +223,44 @@ The dashboard adds no tokens. It adds *applications* of the same system, tuned f
   records become stacked cards instead of a scrolled table.
 - **Dialog** — 16px radius, 27rem max width, focus trapped by Radix, destructive confirm is rose, and
   irreversible actions require typing a word.
+
+---
+
+## Stage 3 — admin console layer
+
+The console adds **no new tokens and no new primitives**. It is the same system at a denser setting:
+an operations surface that has to fit a lot of truth on one screen without becoming a spreadsheet of
+grey.
+
+| Token / pattern | Customer workspace | Admin console |
+| --- | --- | --- |
+| Canvas | `surface` with white panels, 18px radius | white shell with `surface` used for the page background, rails and inset blocks; 10px radius for panels, 8px for controls |
+| Sidebar | 248px, 40px rows, two labelled groups | 236px, 32px rows, 10px/11px group caps, 2px violet active bar |
+| Type | title 22–24px, body 14px | title 20–22px, section heading 13px, table 13px, numeric 13px tabular, labels 10.5–11px caps |
+| Vertical rhythm | 16–20px gaps | 10–12px gaps; 8–10px cell padding (`px-3 py-2`) |
+| Shadows | panels `shadow-card`, canvas `lift` | panels have a hairline border and **no** shadow except dialogs (`shadow-float`) |
+| Colour | violet CTAs, mint/rose status | identical, but violet is used only for primary actions and active navigation; table status uses the six restrained tones |
+| Motion | drawer, menu, overlay animations | identical tokens, but no entrance animation on data — only dialogs and drawers move |
+
+**Console-specific patterns** (all composed from `ui/*`, `SectionCard`, `Alert`, `Skeleton`):
+
+- **Metric card** — 10.5px caps label, 24px tabular number, one hint line, optional footnote rule;
+  a `null` metric prints "Not available" in muted type, never `0`.
+- **Table** — native table, 10.5px caps headers, 13px rows, right-aligned numerics, sticky header on
+  white; below `md` the same records render as a `<dl>` card list. Sort lives in the header as a link
+  with `aria-sort` on the `<th>`.
+- **Toolbar** — one 10px-radius strip holding real GET forms: search, select filters, period presets
+  (7/30/90) plus a custom `from`/`to` form, and a reset link.
+- **Pagination** — text count plus "Previous/Next page of <noun>"; the disabled end is a `<span>`,
+  not a dead link.
+- **Detail drawer** — 36rem right panel driven by `?record=<id>`, `<dl>` groups, monospace ids,
+  signed image previews with a 160px frame and an explicit "not provided" state.
+- **Status badge** — 11px bold word plus 6px dot, tonal background; the word always carries the
+  meaning.
+- **Empty / error region** — inset, left-aligned, 36px icon tile, one bold line, one explanation,
+  technical details behind a disclosure. No illustrations, no emoji, no bright CTA.
+- **Confirmation** — the shared dialog with a danger tone; reason-required writes put a `<textarea>`
+  in the dialog and keep it open on failure.
+
+**Rules the console inherited and did not bend:** no gradients, no decorative charts, no oversized
+cards, no invented illustration, no colour-only status, no number that the API did not return.

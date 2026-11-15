@@ -45,14 +45,6 @@ jobs:
       - name: SEO verification
         run: npm run seo:check
 
-      - name: Upload build output
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: next-build
-          path: .next
-          retention-days: 3
-
   e2e:
     name: Playwright E2E
     needs: quality
@@ -69,11 +61,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Restore build output
-        uses: actions/download-artifact@v4
-        with:
-          name: next-build
-          path: .next
+      # The E2E job builds its own bundle. Passing `.next` between jobs via an
+      # artifact is unreliable: upload-artifact@v4 ignores hidden files by default,
+      # and `.next` is a dot-directory, so the download step arrived empty.
+      - name: Build
+        run: npm run build
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit

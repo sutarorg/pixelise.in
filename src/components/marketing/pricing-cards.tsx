@@ -67,7 +67,11 @@ export function PricingCards({
                   <span className="tabular-nums">{pack.credits}</span> credits
                 </span>
                 <span className="text-[0.75rem] text-muted">
-                  {isBestValue ? "Best value per credit" : "One-time pack"}
+                  <span className="tabular-nums">
+                    ₹{(costPerCredit(pack) / 100).toFixed(2)}
+                  </span>{" "}
+                  per credit
+                  {isBestValue ? " · best value" : ""}
                 </span>
               </div>
 

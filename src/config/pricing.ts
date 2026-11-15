@@ -39,7 +39,7 @@ export const pricingPacks: readonly PricingPack[] = [
       "One-time purchase — no subscription, no auto-renewal",
       "Built for listings, marketplaces, ads and social",
     ],
-    ctaLabel: "Get the Creator pack",
+    ctaLabel: "Get started with Creator",
   },
   {
     id: "studio",
@@ -58,7 +58,7 @@ export const pricingPacks: readonly PricingPack[] = [
       "Lower cost per credit than Creator",
       "One-time purchase — no subscription, no auto-renewal",
     ],
-    ctaLabel: "Get the Studio pack",
+    ctaLabel: "Get started with Studio",
   },
 ] as const;
 

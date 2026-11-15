@@ -191,3 +191,35 @@ accordion open/close, drawer slide, menu fade, and hover transitions ≤ 600 ms.
   user-uploaded content.
 - The SEO helpers in `src/lib/seo/` should not be imported by authenticated routes; those render
   `robots: { index: false }`.
+
+---
+
+## Stage 2 — application layer
+
+The dashboard adds no tokens. It adds *applications* of the same system, tuned for density.
+
+| Token / pattern | Marketing use | Application use |
+| --- | --- | --- |
+| `--color-canvas` / `--color-surface` | page background, alternate bands | `surface` is the workspace canvas; panels are `canvas` (white) |
+| `--color-violet` | CTAs, accents | primary action, active nav, brand marks only — filters use `violet/10` tints |
+| `--color-line` | section rules | every panel edge, table rule, sidebar divider |
+| `--radius-card` (18px) | feature cards | workspace panels; inner items use 10–14px |
+| `--shadow-card` | feature cards | every panel; `lift` for the canvas status pill, `float` for dialogs |
+| Type scale | display 39–65px | page title 22–24px, card title 15px, UI 13–14px, labels 11px uppercase |
+| Buttons | `sm`/`md`/`lg`/`xl` | `sm` in toolbars, `md` in forms, `lg` for Generate and Checkout |
+
+**Application-specific patterns** (all built from the primitives, none replacing them):
+
+- **Nav item** — 40px row, 10px radius, icon 17px + 13.5px semibold label; active = `bg-tint`,
+  `text-violet-ink`, inset violet ring, `aria-current="page"`.
+- **Credit chip** — 36px pill on `surface` with a violet coin glyph, tabular number, "credits".
+- **Selectable card** (style, scene, aspect ratio, quality) — real radio input inside a `<label>`;
+  selected = violet border + `bg-tint` + violet check. Never colour-only.
+- **Status pill** — 11px uppercase bold, tonal background: progress = tint, success = mint,
+  failure = rose, idle = surface.
+- **Empty / error region** — centred 48px icon tile, one bold line, one sentence, one action;
+  error states add a collapsed "Technical details" disclosure with code, status and request id.
+- **Table** — 12px header caps, 13px rows, 0.5px dividers, right-aligned numerics; below `md` the same
+  records become stacked cards instead of a scrolled table.
+- **Dialog** — 16px radius, 27rem max width, focus trapped by Radix, destructive confirm is rose, and
+  irreversible actions require typing a word.

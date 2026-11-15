@@ -41,15 +41,15 @@ Behaviour today:
 
 This is the documented seam for stage 2. **No route in this repository 404s.**
 
-## Routes intentionally *not* in this stage
+## Routes intentionally *not* in stage 1
 
 Delivered later; disallowed in `robots.txt` and absent from the sitemap:
 
-- `/signup`, `/login`, `/reset-password` — auth (stage 2)
-- `/dashboard`, `/dashboard/*`, `/account` — customer area (stage 2)
+- `/signup`, `/login`, `/reset-password` — auth (stage 3, with Supabase)
+- `/dashboard`, `/studio`, `/creations`, `/credits`, `/transactions`, `/settings`, `/help` — the
+  customer workspace; **delivered in stage 2**, see the app route map at the end of this file
 - `/admin`, `/admin/*` — admin area (stage 3)
 - `/checkout`, `/api/*` — commerce + backend (stage 4)
-- `/studio/*` — generation workspace (stage 4)
 
 ## Internal linking map
 
@@ -100,3 +100,29 @@ No ratings, reviews, counters or customer data appear in any structured data.
 
 Home → page. Legal pages and `/get-started` included. The visible trail and the JSON-LD
 `BreadcrumbList` are generated from the same array on each page.
+
+---
+
+# Route map — customer application (stage 2)
+
+The application lives in `src/app/(app)/`, inherits no marketing metadata, is `noindex`, disallowed in
+`robots.txt` and excluded from `sitemap.xml`.
+
+| Route | Renders | Dynamic regions | Notes |
+| --- | --- | --- | --- |
+| `/dashboard` | welcome, primary action, styles | wallet, recent creations, usage | The landing page after sign-in |
+| `/studio` | four configure steps + canvas | studio config, wallet | The only page with a real client state machine |
+| `/creations` | filter bar + gallery | generations list (cursor) | `?style=`, `?sort=`, `?cursor=` |
+| `/creations/[id]` | visual, details, source | one generation | Deleted/foreign ids share one safe surface |
+| `/credits` | two packs, how credits work | pack catalogue | Checkout creates the order server-side |
+| `/transactions` | filters + table | transactions (cursor) | `?type=purchase\|generation\|refund\|adjustment` |
+| `/settings` | profile, security, preferences, account | profile, preferences | Deletion requires typing `DELETE` |
+| `/help` | topic cards + support note | none | Links out to marketing policies |
+
+Navigation is fixed: Workspace (Dashboard, AI Studio, My Creations) and Account (Buy Credits,
+Transactions, Settings, Help & Support). Phones show four of those in a bottom bar plus an account
+drawer; nothing else is added to keep the information architecture flat.
+
+**Deliberately absent in this stage:** `/login`, `/signup`, `/checkout` (auth and payment pages),
+`/admin/**` (stage 3), any `/api/**` handler (stage 4). `robots.txt` already blocks those paths so
+their absence is not indexable, and the app shell renders the sign-in gate those pages will serve.

@@ -71,3 +71,21 @@ Recorded so they are not reintroduced by accident:
 - No invented response times, refund windows, credit expiry or licence terms.
 - No email address, phone number, registered address, GSTIN or CIN anywhere on the site.
 - No “demo mode”, sample data or placeholder content of any kind.
+
+---
+
+# Stage 2 additions — customer dashboard
+
+These decisions block published claims in the workspace. Each has a designed placeholder today, so
+nothing false ships while they are open.
+
+| # | Needed | Where it appears | Placeholder behaviour |
+| --- | --- | --- | --- |
+| 1 | GST treatment on credit packs (inclusive/exclusive) and whether invoices are issued | `/credits` support line, `/transactions` amount column | Copy points at the refund policy and contact page; no tax claim is made |
+| 2 | Refund window and who approves a refund | `/credits`, `/settings` (delete account), `/refund-policy` | "Handled under the refund policy" with no invented timeframe |
+| 3 | Support inbox and response-time promise | `/help`, `/contact`, account menu | "A monitored inbox doesn't exist yet" |
+| 4 | Data-retention period for source photos and results after deletion | `/settings` delete dialog | States what is removed, not how long backups persist |
+| 5 | Password policy, MFA availability, session lifetime | `/settings` security section | States that the account service owns it; no simulated controls |
+| 6 | Credit cost per generation (standard vs premium) | `/studio` cost panel | Shows `—` and explains the service confirms the cost |
+| 7 | Final scene catalogue, aspect ratios and quality tiers | `/studio` seed | `src/config/studio.ts` is labelled a default catalogue |
+| 8 | Download link lifetime (signed URLs) | `/settings` security note, creation page | Says links are time-limited, without a number |

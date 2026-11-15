@@ -8,7 +8,10 @@
  *   them, with an explicit reason, so a green run is never mistaken for full coverage.
  */
 
-const rawBaseUrl = process.env.E2E_BASE_URL ?? "http://127.0.0.1:3100";
+// CI passes `E2E_BASE_URL=""` when the repository variable is unset, so blank
+// must mean "use the local default" rather than "point at the empty string".
+const configuredBaseUrl = process.env.E2E_BASE_URL?.trim();
+const rawBaseUrl = configuredBaseUrl ? configuredBaseUrl : "http://127.0.0.1:3100";
 
 export const baseUrl = rawBaseUrl.replace(/\/+$/, "");
 

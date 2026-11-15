@@ -149,3 +149,16 @@ customer dashboard; staff reach it by URL or bookmark.
 Gate states: unauthenticated → sign-in gate; authenticated non-staff → bare 403 with no navigation,
 counts or record ids; unreachable API → error page; no API configured → shell with a "not connected"
 strip. None of these surfaces contains a record, a total or a link into a section.
+
+# Route map — the journal (stage 5)
+
+| Route | Rendering | Metadata | Structured data | Notes |
+| --- | --- | --- | --- | --- |
+| `/blog` | static | `pageMetadata`, canonical `/blog`, OG website | `Blog` + `BreadcrumbList` | Hero (eyebrow "THE PIXELISE JOURNAL", H1 "Better product photography starts with better ideas."), featured article, 12 cards, 4 category links, editorial disclosure. No newsletter form. |
+| `/blog/[slug]` | static, `generateStaticParams` over 12 slugs | `pageMetadata({ type: "article", image: cover, publishedTime, modifiedTime })` | `BlogPosting` + `BreadcrumbList` | Breadcrumbs Home → Journal → Category → Article, cover figure with disclosure caption, sticky TOC (native `<details>` on mobile), article body, author box, related articles, commercial CTA. |
+| `/blog/categories/[category]` | static, 4 categories | `pageMetadata`, canonical per category | `BreadcrumbList` | Same category chips with `aria-current`, real counts, article grid. |
+| `/blog/not-a-slug` | 404 | noindex | — | `notFound()` for unknown slugs and categories. |
+
+Sitemap: all of the above are included (28 URLs total). Private routes
+(`/dashboard`, `/studio`, `/creations`, `/credits`, `/transactions`, `/settings`, `/help`,
+`/admin/*`) are excluded and `noindex`.

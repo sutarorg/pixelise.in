@@ -119,7 +119,14 @@ export default function PricingPage() {
       />
 
       <Section tone="canvas" space="md">
-        <PricingCards ctaHref={links.getStarted} />
+        <SectionHeading
+          eyebrow="Packs"
+          title="Two one-time packs. No subscription."
+          lead="The studio is identical in both. You are choosing how many credits to buy and what each one costs."
+        />
+        <div className="mt-10">
+          <PricingCards ctaHref={links.getStarted} />
+        </div>
 
         <div className="mt-8 grid gap-3 rounded-[var(--radius-card)] border border-line bg-surface px-5 py-4 sm:grid-cols-2 sm:gap-6">
           <p className="text-[0.875rem] leading-[1.6] text-muted-strong">

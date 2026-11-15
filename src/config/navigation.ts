@@ -20,6 +20,11 @@ export const primaryNav: readonly NavItem[] = [
     href: routes.faq,
     children: [
       {
+        label: "Journal",
+        href: routes.blog,
+        description: "Product photography guides and platform advice.",
+      },
+      {
         label: "FAQ",
         href: routes.faq,
         description: "How credits, styles and packs work.",
@@ -47,6 +52,7 @@ export const footerNav: readonly { title: string; links: readonly NavLink[] }[] 
       { label: "Photography styles", href: `${routes.features}#photography-styles` },
       { label: "How it works", href: routes.howItWorks },
       { label: "Examples", href: routes.examples },
+      { label: "Journal", href: routes.blog },
     ],
   },
   {
@@ -62,6 +68,7 @@ export const footerNav: readonly { title: string; links: readonly NavLink[] }[] 
     title: "Support",
     links: [
       { label: "FAQ", href: routes.faq },
+      { label: "Journal", href: routes.blog },
       { label: "Contact support", href: routes.contact },
       { label: "Log in", href: routes.getStarted },
     ],

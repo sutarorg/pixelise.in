@@ -1,6 +1,9 @@
 import { pricingPacks } from "@/config/pricing";
 import { siteConfig, routes } from "@/config/site";
+import { blogConfig } from "@/config/blog";
 import type { FaqItem } from "@/config/content";
+
+const blogPath = blogConfig.path;
 
 /**
  * Structured data follows Google Search Central's policies: only facts that
@@ -90,5 +93,81 @@ export function faqSchema(items: readonly Pick<FaqItem, "question" | "answer">[]
       name: item.question,
       acceptedAnswer: { "@type": "Answer", text: item.answer },
     })),
+  };
+}
+
+/**
+ * Blog index structured data.
+ *
+ * `Blog` describes the journal itself; the `blogPost` list gives crawlers the current
+ * table of contents. No `aggregateRating`, no view counts, nothing that is not visible
+ * on the page.
+ */
+export function blogSchema(posts: readonly { slug: string; title: string; description: string; publishedAt: string; cover: { src: string } }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": `${siteConfig.url}${blogPath}#blog`,
+    name: "The Pixelise Journal",
+    description:
+      "Practical product photography guides for ecommerce sellers, researched against primary platform documentation.",
+    url: `${siteConfig.url}${blogPath}`,
+    inLanguage: siteConfig.language,
+    publisher: { "@id": `${siteConfig.url}/#organization` },
+    blogPost: posts.map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.description,
+      url: `${siteConfig.url}${blogPath}/${post.slug}`,
+      datePublished: post.publishedAt,
+      image: `${siteConfig.url}${post.cover.src}`,
+    })),
+  };
+}
+
+type BlogPostingInput = {
+  slug: string;
+  title: string;
+  description: string;
+  publishedAt: string;
+  updatedAt: string;
+  categoryLabel: string;
+  keywords: readonly string[];
+  cover: { src: string; width: number; height: number; alt: string };
+  wordCount: number;
+};
+
+export function blogPostingSchema(post: BlogPostingInput) {
+  const url = `${siteConfig.url}${blogPath}/${post.slug}`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "@id": `${url}#article`,
+    headline: post.title,
+    description: post.description,
+    url,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt,
+    inLanguage: siteConfig.language,
+    articleSection: post.categoryLabel,
+    keywords: post.keywords.join(", "),
+    wordCount: post.wordCount,
+    image: {
+      "@type": "ImageObject",
+      url: `${siteConfig.url}${post.cover.src}`,
+      width: post.cover.width,
+      height: post.cover.height,
+      caption: post.cover.alt,
+    },
+    // An organisational byline. No invented person, credentials or reviewer.
+    author: {
+      "@type": "Organization",
+      name: "Pixelise Editorial Team",
+      url: `${siteConfig.url}${blogPath}`,
+    },
+    publisher: { "@id": `${siteConfig.url}/#organization` },
+    isPartOf: { "@id": `${siteConfig.url}${blogPath}#blog` },
   };
 }

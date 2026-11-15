@@ -7,6 +7,7 @@ import { PageHero } from "@/components/marketing/page-hero";
 import { ExamplesGallery } from "@/components/marketing/examples-gallery";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { JsonLd } from "@/components/shared/json-ld";
+import { SectionHeading } from "@/components/shared/section-heading";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema } from "@/lib/seo/structured-data";
 import { links, routes } from "@/config/site";
@@ -47,7 +48,14 @@ export default function ExamplesPage() {
       />
 
       <Section tone="canvas" space="md">
-        <ExamplesGallery />
+        <SectionHeading
+          eyebrow="Gallery"
+          title="Three photographic directions, one studio."
+          lead="Filter by the look you need. Each set shows how the same product behaves under different lighting and styling decisions."
+        />
+        <div className="mt-10">
+          <ExamplesGallery />
+        </div>
       </Section>
 
       <Section tone="surface" space="sm" divider>

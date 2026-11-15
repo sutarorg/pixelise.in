@@ -15,7 +15,9 @@ import { pageMetadata } from "@/lib/seo/metadata";
 import { faqSchema, softwareApplicationSchema } from "@/lib/seo/structured-data";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Pixelise — AI Product Photography Studio",
+  // Approved brand title. Fixed with `absoluteTitle` so the root template does not
+  // append "| Pixelise" — the homepage title is a brand decision, not a page name.
+  title: "AI Product Photography to Boost Sales Online",
   absoluteTitle: true,
   description:
     "Create studio, lifestyle and advertising product photos with AI. Upload a product photo, pick a style and get ecommerce-ready visuals. Packs from ₹499.",

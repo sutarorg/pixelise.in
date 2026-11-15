@@ -16,9 +16,20 @@ import { defineConfig, devices } from "@playwright/test";
  * adding signal. See docs/research/e2e-testing-research.md §3.
  */
 
-const PORT = Number(process.env.E2E_PORT ?? 3100);
-const HOST = process.env.E2E_HOST ?? "127.0.0.1";
-const baseURL = process.env.E2E_BASE_URL ?? `http://${HOST}:${PORT}`;
+/**
+ * GitHub Actions renders an unset `vars.*`/`secrets.*` reference as an **empty
+ * string**, not as undefined. Using `??` here meant CI received `E2E_BASE_URL=""`
+ * and `new URL("")` threw ERR_INVALID_URL at config load, failing the whole job
+ * before a single test ran. Treat blank as absent.
+ */
+const envValue = (name: string): string | undefined => {
+  const value = process.env[name]?.trim();
+  return value ? value : undefined;
+};
+
+const PORT = Number(envValue("E2E_PORT") ?? 3100);
+const HOST = envValue("E2E_HOST") ?? "127.0.0.1";
+const baseURL = envValue("E2E_BASE_URL") ?? `http://${HOST}:${PORT}`;
 
 const target = new URL(baseURL);
 const productionHosts = ["pixelise.in", "www.pixelise.in"];
@@ -84,7 +95,7 @@ export default defineConfig({
       use: { ...devices["Pixel 7"] },
     },
   ],
-  webServer: process.env.E2E_NO_WEBSERVER
+  webServer: envValue("E2E_NO_WEBSERVER")
     ? undefined
     : {
         command: `npx next start -p ${PORT} -H ${HOST}`,

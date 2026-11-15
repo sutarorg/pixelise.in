@@ -938,3 +938,85 @@ Every screen must have all six; none of them may be replaced by placeholder data
 - The rule that a payment is never marked successful by a client, and that refunds are server-only.
 - The rule that no provider secret, signing key or signed URL ever appears in a response the console
   would render.
+
+---
+
+# Part IV — the backend as delivered (stage 4)
+
+Parts I–III described the contracts the frontends were typed against. This part records exactly
+what was implemented, and every place the implementation differs from those notes. Nothing here
+changes a component: the additions are backwards-compatible, and the two renames are served at both
+paths.
+
+## 30. Envelope
+
+Every `/api/v1` response is now explicitly:
+
+```json
+{ "success": true,  "data": { }, "requestId": "…" }
+{ "success": false, "error": { "code": "…", "message": "…", "details": { "field": "…" } }, "requestId": "…" }
+```
+
+`src/lib/api/core.ts` unwraps it, so the components in Parts I–III see the same `ApiResult<T>`.
+`details` appears only for `validation_failed`.
+
+## 31. Paths: canonical and aliases
+
+| Part I–III path | Canonical path | Alias kept |
+| --- | --- | --- |
+| `POST /api/v1/billing/orders` | `POST /api/v1/payments/orders` | yes |
+| `POST /api/v1/billing/verify` | `POST /api/v1/payments/verify` | yes |
+| `GET /api/v1/billing/payments` | `GET /api/v1/payments` | yes |
+
+`/api/v1/credits/wallet`, `/credits/transactions`, `/credits/packs`, `/studio/config`, `/me`,
+`/me/preferences`, `/uploads`, `/generations`, `/creations` are unchanged in name and shape.
+
+## 32. Request shapes that gained tolerance
+
+* `POST /api/v1/generations` accepts the studio's existing `{assetId, aspectRatioId}` **and** the
+  canonical `{sourceAssetId, aspectRatio}`. Unknown fields are stripped, so a client cannot smuggle
+  `creditCost` or `modelEndpoint` into the handler.
+* `POST /api/v1/uploads` uses the existing `{filename, mimeType, bytes}` (the declared size is a
+  hint; the stored object is what is verified).
+* `POST /api/v1/payments/verify` uses `{orderId, paymentId, signature}`.
+* `PATCH /api/v1/me` accepts `{displayName}` only. Preferences are a separate, flat PATCH at
+  `/me/preferences`.
+
+## 33. New endpoints not in Parts I–III
+
+| Path | Purpose |
+| --- | --- |
+| `GET /api/v1/public/config` | pack prices + capability flags for the marketing site |
+| `POST /api/v1/public/contact` | contact form; returns `{ok:true, ticketId}` inside `data` |
+| `POST /api/v1/auth/{sign-up,sign-in,sign-out,recovery,update-password}` | SSR auth flows |
+| `GET /api/v1/auth/callback` | email-link PKCE exchange |
+| `POST /api/v1/generations/{id}/cancel` | cancel while queued/running |
+| `POST /api/v1/payments/orders`, `/payments/verify`, `GET /payments` | canonical payment paths |
+| `GET/PATCH /api/v1/admin/settings` | raw `system_settings` key/value |
+| `GET/POST /api/v1/admin/pricing` | generation credit rates, with an `approved` flag |
+| `POST /api/v1/admin/reconcile` | repair stuck jobs, uncredited captures, expired uploads |
+
+`GET /api/v1/admin/credits` remains the ledger list; `POST /api/v1/admin/credits/adjust` remains the
+only way to move credits by hand.
+
+## 34. Values that are now explicitly `null`
+
+* `StudioConfig.qualities[].credits` — `null` until the owner approves a rate. The studio renders
+  "pricing not configured" and the generation endpoint returns `not_configured`.
+* `AdminModel.providerPricing` — `null` where fal does not publish a price.
+* `AdminUserRow.lifetimePaidPaise` — `null` only if the aggregate could not be computed; the service
+  returns `0` for a customer with no payments.
+
+## 35. Status codes used by the new endpoints
+
+`402` insufficient credits or failed payment · `409` duplicate/incorrect state (including a second
+upload confirmation) · `422` validation with `details` · `429` rate limited · `503` not configured
+or provider unavailable. `202` marks an accepted generation.
+
+## 36. What stage 4 did **not** change
+
+* Component contracts, enum values and the `no mock data` rule.
+* Authorization decided per request, never in the browser.
+* No price, cost, balance or aggregate computed client-side.
+* No provider secret or signed URL in any response body.
+* Generation remains impossible without an approved rate — the honest default, not a gap.

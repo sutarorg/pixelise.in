@@ -61,3 +61,14 @@ export function FieldHint({ className, ...props }: React.ComponentProps<"p">) {
     />
   );
 }
+
+/** Inline field error. Uses the same red as the invalid input border. */
+export function FieldError({ className, ...props }: React.ComponentProps<"p">) {
+  return (
+    <p
+      role="alert"
+      className={cn("text-[0.75rem] leading-[1.5] text-[#c4342a]", className)}
+      {...props}
+    />
+  );
+}
